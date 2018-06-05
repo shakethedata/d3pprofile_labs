@@ -47,7 +47,20 @@ var data = [{"PARAM":"ALT","ADY":"-1","AVAL":40},
     {"PARAM":"ALT","ADY":"21","AVAL":45},
     {"PARAM":"ALT","ADY":"42","AVAL":40},
     {"PARAM":"ALT","ADY":"63","AVAL":46},
-    {"PARAM":"ALT","ADY":"84","AVAL":34}]
+    {"PARAM":"ALT","ADY":"84","AVAL":34},
+    {"PARAM":"AST","ADY":"-1","AVAL":30},
+    {"PARAM":"AST","ADY":"1","AVAL":40},
+    {"PARAM":"AST","ADY":"21","AVAL":35},
+    {"PARAM":"AST","ADY":"42","AVAL":30},
+    {"PARAM":"AST","ADY":"63","AVAL":45},
+    {"PARAM":"AST","ADY":"84","AVAL":24}]
+
+var lbParam = $("#lb-param-select").val();
+var data = data.filter(function(d){
+        if (lbParam == "AST") {return d.PARAM == "AST"};
+        if (lbParam == "ALT") {return d.PARAM == "ALT"};
+    });
+
     
 
 // Line path generator
@@ -104,14 +117,16 @@ g.append("path")
 
     function mousemove() {
         var x0 = x.invert(d3.mouse(this)[0]),
-            i = bisectDate(data, x0, 1),
+            i = d3.bisect(data, x0, 1),
             d0 = data[i - 1],
             d1 = data[i],
-            d = x0 - d0.year > d1.year - x0 ? d1 : d0;
-        focus.attr("transform", "translate(" + x(d.year) + "," + y(d.value) + ")");
-        focus.select("text").text(d.value);
-        focus.select(".x-hover-line").attr("y2", height - y(d.value));
-        focus.select(".y-hover-line").attr("x2", -x(d.year));
+            d1 = data[2],
+            d0 = data[1]
+            d = x0 - d0.ADY > d1.ADY - x0 ? d1 : d0;
+        focus.attr("transform", "translate(" + x(d.ADY) + "," + y(d.AVAL) + ")");
+        focus.select("text").text(d.AVAL);
+        focus.select(".x-hover-line").attr("y2", height - y(d.AVAL));
+        focus.select(".y-hover-line").attr("x2", -x(d.ADY));
     }
 
 
