@@ -35,11 +35,33 @@ var yAxis = g.append("g")
 yAxis.append("text")
     .attr("class", "axis-title")
     .attr("transform", "rotate(-90)")
-    .attr("y", 6)
+    .attr("y", -60)
     .attr("dy", ".71em")
     .style("text-anchor", "end")
     .attr("fill", "#5D6971")
     .text("AST");
+
+
+// X-Axis label
+xAxis.append("text")
+    .attr("class", "axis-title")
+    .attr("y", 40)
+    .attr("x", 350)
+    .attr("dy", ".71em")
+    .style("text-anchor", "end")
+    .attr("fill", "#5D6971")
+    .text("Study Day");
+
+
+// Add line to chart
+g.append("path")
+    .attr("class", "line")
+    .attr("fill", "none")
+    .attr("stroke", "pink")
+    .attr("stroke-with", "3px");
+
+// Transition
+var t = function(){ return d3.transition().duration(1000); }
 
 
 var data = [{"PARAM":"ALT","ADY":"-1","AVAL":40},
@@ -55,11 +77,22 @@ var data = [{"PARAM":"ALT","ADY":"-1","AVAL":40},
     {"PARAM":"AST","ADY":"63","AVAL":45},
     {"PARAM":"AST","ADY":"84","AVAL":24}]
 
+
+function update(data){
+
 var lbParam = $("#lb-param-select").val();
+function lineColour(lbParam) {
+    if (lbParam == "AST") {return "red"};
+    if (lbParam == "ALT") {return "blue"};
+};
+
+console.log(lbParam);
+console.log(lineColour(lbParam));
 var data = data.filter(function(d){
         if (lbParam == "AST") {return d.PARAM == "AST"};
         if (lbParam == "ALT") {return d.PARAM == "ALT"};
-    });
+    })
+
 
     
 
@@ -76,13 +109,20 @@ y.domain([0,100]);
 xAxis.call(xAxisCall.scale(x))
 yAxis.call(yAxisCall.scale(y))
 
-// Add line to chart
-g.append("path")
-    .attr("class", "line")
-    .attr("fill", "none")
-    .attr("stroke", "grey")
-    .attr("stroke-with", "3px")
-    .attr("d", line(data));
+//EXIT
+//Remove bar elements not kept in new data selection
+//line.exit().remove();
+
+ // Update our line path
+ g.select(".line")
+    .transition(t)
+    .attr("d", line(data))
+    .attr("stroke", lineColour(lbParam));
+
+ // Update y-axis label not done
+ //var newText = (yValue == "price_usd") ? "Price (USD)" :
+ //((yValue == "market_cap") ?  "Market Capitalization (USD)" : "24 Hour Trading Volume (USD)")
+//yLabel.text(newText);
 
     /******************************** Tooltip Code ********************************/
 
@@ -116,13 +156,17 @@ g.append("path")
         .on("mousemove", mousemove);
 
     function mousemove() {
+        // use a left bisector so that pos returned is larger than domainX
+        var bisector = d3.bisector(function(d){ return d.ADY; }).left;
+
         var x0 = x.invert(d3.mouse(this)[0]),
-            i = d3.bisect(data, x0, 1),
+            i = bisector(data, x0);
             d0 = data[i - 1],
-            d1 = data[i],
-            d1 = data[2],
-            d0 = data[1]
-            d = x0 - d0.ADY > d1.ADY - x0 ? d1 : d0;
+            d1 = data[i];
+        //console.log(x0);
+        //console.log(i);
+
+        var   d = x0 - d0.ADY > d1.ADY - x0 ? d1 : d0;
         focus.attr("transform", "translate(" + x(d.ADY) + "," + y(d.AVAL) + ")");
         focus.select("text").text(d.AVAL);
         focus.select(".x-hover-line").attr("y2", height - y(d.AVAL));
@@ -131,6 +175,18 @@ g.append("path")
 
 
     /******************************** Tooltip Code ********************************/
+};
+
+
+update(data);
+
+// When lab parameter select box changes update the plot
+$("#lb-param-select")
+.on("change", function(){
+    update(data);
+});
+
+
 
 
 
